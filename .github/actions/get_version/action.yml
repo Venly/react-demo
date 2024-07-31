@@ -14,19 +14,22 @@ runs:
       shell: bash
       run: |
         #!/bin/bash
-        set -x
-        PACKAGE_JSON_PATH="./package.json"
-        if [[ -f "$PACKAGE_JSON_PATH" ]]; then
-            VERSION=$(jq -r '.version' "$PACKAGE_JSON_PATH")
-            if [[ "$VERSION" == "null" || -z "$VERSION" ]]; then
-              echo "No version field found in $PACKAGE_JSON_PATH"
-              echo "current_version=0.0.0" >> $GITHUB_ENV
+        FILE_PATTERN="package.json"
+        find . -name "$FILE_PATTERN" | while read -r PACKAGE_JSON_PATH; do
+            # Check if the file exists
+            if [[ -f "$PACKAGE_JSON_PATH" ]]; then
+                # Extract version using jq
+                VERSION=$(jq -r '.version' "$PACKAGE_JSON_PATH")
+                if [[ "$VERSION" == "null" || -z "$VERSION" ]]; then
+                    echo "No version field found in $PACKAGE_JSON_PATH"
+                    echo "current_version=0.0.0" >> $GITHUB_ENV
+                else
+                    echo "Version in $PACKAGE_JSON_PATH is $VERSION"
+                    echo "current_version=$VERSION" >> $GITHUB_ENV
+                    echo "current_version=$VERSION" >> $GITHUB_OUTPUT
+                fi
             else
-              echo "Version in $PACKAGE_JSON_PATH is $VERSION"
-              echo "current_version=$VERSION" >> $GITHUB_ENV
-              echo "current_version=$VERSION" >> $GITHUB_OUTPUT
+                echo "$PACKAGE_JSON_PATH not found"
+                echo "current_version=0.0.0" >> $GITHUB_ENV
             fi
-        else
-            echo "$PACKAGE_JSON_PATH not found"
-            echo "current_version=0.0.0" >> $GITHUB_ENV
-        fi
+        done
