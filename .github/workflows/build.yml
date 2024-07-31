@@ -62,7 +62,7 @@ jobs:
   # Job: Build Docker
   # =====================================================
   docker:
-    if: ${{ success() && github.event_name != 'pull_request' && contains(fromJSON('["main", "master", "develop"]'), github.ref_name) || startsWith(github.ref_name, 'release-') || startsWith(github.ref_name, 'hotfix-') }}
+    if: ${{ success() && github.event_name != 'pull_request' && contains(fromJSON('["main", "master", "develop"]'), github.ref_name) || startsWith(github.ref_name, 'release-') || startsWith(github.ref_name, 'hotfix-') || startsWith(github.ref_name, 'VENLY-') }}
     runs-on: ubuntu-latest
     needs: build
     strategy:
