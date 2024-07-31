@@ -1,8 +1,6 @@
-# React Demo
+# React Demo - ConnectSDK
 
 An example React app using Venly's [ConnectSDK](https://www.npmjs.com/package/@venly/connect).
-
-https://react-demo.venly.io
 
 ## Getting started
 
