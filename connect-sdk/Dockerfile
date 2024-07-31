@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 RUN apt-get update && apt-get -y upgrade && apt-get install -y curl \
-    && npm install --only=production --omit=dev
+    && npm install
 
 CMD ["npm", "run", "buildAndServe"]
 
