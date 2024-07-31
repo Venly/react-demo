@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       sha_tag: ${{ steps.app_info.outputs.sha_tag }}
-      version_tag: ${{ steps.app_info.outputs.app_version }}
+      version_tag: ${{ steps.get_version.outputs.version }}
       branch_tag: ${{ steps.app_info.outputs.branch_tag }}
     steps:
       - name: ✅ Checkout
@@ -49,10 +49,14 @@ jobs:
         with:
           branch: ${{ github.ref }}
 
+      - name: 🔍 Get Version
+        id: get_version
+        uses: ./.github/actions/get_version
+
       - name: 📄 Show Build Information
         run: |
           echo "Sha Tag: ${{ steps.app_info.outputs.sha_tag }}"
-          echo "Version Tag: ${{ steps.app_info.outputs.app_version }}"
+          echo "Version Tag: ${{ steps.get_version.outputs.version }}"
           echo "Branch Tag: ${{ steps.app_info.outputs.branch_tag }}"
   # =====================================================
   # Job: Build Docker
