@@ -8,7 +8,7 @@ An example React app using Venly's [ConnectSDK](https://www.npmjs.com/package/@v
 
 2. Follow the [authentication guide](https://docs.venly.io/docs/widget-authentication) to obtain your Client ID and setup your redirect URLs
 
-3. Setup your environment variables in `.env.local`
+3. Setup your environment variables in `.env`
 - `VITE_CLIENT_ID` - your Widget Client ID
 - `VITE_ENV` - environment can be either `production` or `sandbox` (defaults to `production`).
 
