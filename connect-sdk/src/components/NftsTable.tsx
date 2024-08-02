@@ -80,7 +80,7 @@ export default function Nfts({
           <tr className="table-grid__row" key={nft.id}>
             <td>
               <div className="table-grid__flex">
-                <img src={nft.imageThumbnailUrl ?? '/chains/ethereum.svg'} className="table-grid__nft" alt={nft.imageThumbnailUrl} />
+                <img src={nft.imageThumbnailUrl ?? nft.imageUrl ?? '/chains/ethereum.svg'} className="table-grid__nft" alt="NFT image" />
                 <p className="table-grid__title">{nft.name}</p>
               </div>
             </td>
