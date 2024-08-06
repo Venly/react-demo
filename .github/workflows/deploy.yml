@@ -71,7 +71,7 @@ jobs:
               echo "Deploying ${{ github.ref_name}}"
               docker tag venly-arketype-eu-west-1:${{ github.ref_name }} ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:staging
               bash /home/jenkins/restart-react-staging.sh
-            elif [[ "${{ inputs.branch_to_deploy }}" == "master" ]]; then
+            elif [[ "${{ inputs.branch_to_deploy }}" == "main" ]]; then
               echo "Deploying ${{ github.ref_name}}"
               bash /home/jenkins/restart-react-prd.sh
             else

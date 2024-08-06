@@ -62,7 +62,7 @@ jobs:
   # Job: Build Docker
   # =====================================================
   docker:
-    if: ${{ success() && github.event_name != 'pull_request' && contains(fromJSON('["main", "master", "develop"]'), github.ref_name) || startsWith(github.ref_name, 'release-') || startsWith(github.ref_name, 'hotfix-') || startsWith(github.ref_name, 'VENLY-') }}
+    if: ${{ success() && github.event_name != 'pull_request' && contains(fromJSON('["main", "master", "develop"]'), github.ref_name) || startsWith(github.ref_name, 'release-') || startsWith(github.ref_name, 'hotfix-') }}
     runs-on: ubuntu-latest
     needs: build
     strategy:
@@ -129,6 +129,47 @@ jobs:
             aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com
             echo "Deploying ${{ github.ref_name}}"
             bash /home/jenkins/restart-react-qa.sh
+            docker logout ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com
+  # =====================================================
+  # Job: Deploy Release to Staging
+  # =====================================================
+  deploy-release-to-staging:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release-')
+    steps:
+      - name: 🔑 Configure AWS credentials
+        id: aws_creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: eu-west-1
+          role-to-assume: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
+          role-session-name: OIDCSession
+          mask-aws-account-id: true
+          output-credentials: true
+
+      - name: 🚀 Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ steps.aws_creds.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws_creds.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws_creds.outputs.aws-session-token }}
+        with:
+          host: ${{ secrets.DEMO_ARKETYPE_HOST }}
+          username: ${{ secrets.DEMO_ARKETYPE_USER }}
+          key: ${{ secrets.ACTIONS_PRIVATE_SSH_KEY }}
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN
+          script: |
+            echo "sha: ${{ github.sha }}"
+            echo "branch: ${{ github.ref_name }}"
+            export AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}
+            export AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}
+            export AWS_SESSION_TOKEN=${{ env.AWS_SESSION_TOKEN }}
+            aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com
+            docker tag venly-react-demo-eu-west-1:${{ github.ref_name }} ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:staging
+            echo "Deploying ${{ github.ref_name}}"
+            bash /home/jenkins/restart-react-staging.sh
             docker logout ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com
   # =====================================================
   # Job: Merge Back
