@@ -76,7 +76,7 @@ runs:
             VERSION=$(jq -r '.version' "$PACKAGE_JSON_PATH")
             if [[ "$VERSION" == "null" || -z "$VERSION" ]]; then
               echo "No version field found in $PACKAGE_JSON_PATH"
-              echo "release_version_raw="0.0.0"" >> $GITHUB_ENV
+              echo "release_version_raw=0.0.0" >> $GITHUB_ENV
             else
               echo "Version in $PACKAGE_JSON_PATH is $VERSION"
               echo "release_version_raw=$VERSION" >> $GITHUB_ENV
