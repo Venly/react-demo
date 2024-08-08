@@ -79,16 +79,15 @@ runs:
       run: |
         #!/bin/bash
         set -x
-        echo "🔍 Reading package.json for version..."
         find . -name 'package.json' | while read -r PACKAGE_JSON_PATH; do
           if [[ -n "$PACKAGE_JSON_PATH" ]]; then
             VERSION=$(jq -r '.version' "$PACKAGE_JSON_PATH")
             if [[ "$VERSION" == "null" || -z "$VERSION" ]]; then
               echo "No version field found in $PACKAGE_JSON_PATH"
-              echo "hotfix_version_raw="0.0.0"" >> $GITHUB_ENV
+              echo "release_version_raw=0.0.0" >> $GITHUB_ENV
             else
               echo "Version in $PACKAGE_JSON_PATH is $VERSION"
-              echo "hotfix_version_raw=$VERSION" >> $GITHUB_ENV
+              echo "release_version_raw=$VERSION" >> $GITHUB_ENV
             fi
           fi
         done
