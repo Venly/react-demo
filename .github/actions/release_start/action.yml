@@ -113,7 +113,23 @@ runs:
       run: |
         #!/bin/bash
         set -x
+
+        # Function to find the directory containing package.json
+        find_package_json() {
+          local dir
+          dir=$(find . -type f -name package.json -exec dirname {} \;)
+          echo "$dir"
+        }
+
+        PACKAGE_JSON_DIR=$(find_package_json)
+
+        if [ -z "$PACKAGE_JSON_DIR" ]; then
+          echo "package.json not found"
+          exit 1
+        fi
+
         git switch develop
+        cd "$PACKAGE_JSON_DIR"
         NEW_PRE_VERSION=$(npm version preminor --preid=SNAPSHOT --git-tag-version=false)
         git add --all
         git commit --allow-empty -m "bump develop version $NEW_PRE_VERSION"

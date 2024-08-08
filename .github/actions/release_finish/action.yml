@@ -65,10 +65,26 @@ runs:
       run: |
         #!/bin/bash
         set -x
+
+        # Function to find the directory containing package.json
+        find_package_json() {
+          local dir
+          dir=$(find . -type f -name package.json -exec dirname {} \;)
+          echo "$dir"
+        }
+
+        PACKAGE_JSON_DIR=$(find_package_json)
+
+        if [ -z "$PACKAGE_JSON_DIR" ]; then
+          echo "package.json not found"
+          exit 1
+        fi
+
         git stash push -u -m "Temporarily stashing changes before switching branches"
         git checkout ${{ env.release_branch }}
         git config user.email "${{ github.actor }}@venly.io"
         git config user.name "${{ github.actor }}"
+        cd "$PACKAGE_JSON_DIR"
         npm version minor
         RELEASE_VERSION=$(jq -r '.version' package.json)
         echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
@@ -87,10 +103,28 @@ runs:
       run: |
         #!/bin/bash
         set -x
+
+        # Function to find the directory containing package.json
+        find_package_json() {
+          local dir
+          dir=$(find . -type f -name package.json -exec dirname {} \;)
+          echo "$dir"
+        }
+
+        PACKAGE_JSON_DIR=$(find_package_json)
+
+        if [ -z "$PACKAGE_JSON_DIR" ]; then
+          echo "package.json not found"
+          exit 1
+        fi
+
         git reset --hard
         git switch develop
+        cd "$PACKAGE_JSON_DIR"
+
         # Remove all local tags
         git tag -l | xargs -n 1 git tag -d
+
         DEVELOP_VERSION=$(jq -r '.version' package.json)
 
         # Update npm version to release version to avoid merge conflicts
