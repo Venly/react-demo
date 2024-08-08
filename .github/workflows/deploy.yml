@@ -72,11 +72,11 @@ jobs:
               if [[ "${{ inputs.branch_to_deploy }}" == "main" ]]; then
                 # Deploy to both production and staging for the main branch
                 bash /home/jenkins/restart-react-prd.sh
-                docker tag venly-react-demo-eu-west-1:${{ inputs.branch_to_deploy }} ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:staging
+                docker tag ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:${{ inputs.branch_to_deploy }} ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:staging
                 bash /home/jenkins/restart-react-staging.sh
               else
                 # Deploy to staging for release branches
-                docker tag venly-react-demo-eu-west-1:${{ github.ref_name }} ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:staging
+                docker tag ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:${{ github.ref_name }} ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:staging
                 bash /home/jenkins/restart-react-staging.sh
               fi
             else
