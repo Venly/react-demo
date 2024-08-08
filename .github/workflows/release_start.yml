@@ -18,7 +18,7 @@ permissions:
 run-name: 🛫 release-start
 jobs:
   release:
-    runs-on: docker-runner
+    runs-on: ubuntu-latest
     steps:
       - name: ✅ Checkout
         uses: actions/checkout@v4
