@@ -25,6 +25,6 @@ jobs:
         with:
           token: ${{ secrets.VENLY_GITHUB_ACTIONS_TOKEN }}
           fetch-depth: 0
-      - uses: ArkaneNetwork/venly-github-workflows/.github/actions/hotfix_node_finish@main
+      - uses: ./.github/actions/hotfix_finish
         with:
           token: ${{ secrets.VENLY_GITHUB_ACTIONS_TOKEN }}
