@@ -94,6 +94,7 @@ runs:
       run: |
         #!/bin/bash
         set -x
+        git status
         git switch ${{ env.production_branch }}
         git merge ${{ env.release_branch }}
 
