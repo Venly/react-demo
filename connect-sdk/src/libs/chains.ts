@@ -50,7 +50,7 @@ export const chains: Record<string, Chain> = {
   },
   MATIC: {
     name: 'Polygon',
-    symbol: 'MATIC',
+    symbol: 'POL',
   },
   NEO: {
     name: 'NEO',
