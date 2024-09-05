@@ -153,6 +153,9 @@ jobs:
 
             aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
 
+            # Pull Docker image
+            docker pull $IMAGE_URL:$DOCKER_TAG
+
             # Deployment
             echo "Deploying $DOCKER_TAG"
             SERVICE_NAME="venly-react@${ENVIRONMENT}.service"
@@ -227,6 +230,9 @@ jobs:
             export AWS_SESSION_TOKEN=${{ env.AWS_SESSION_TOKEN }}
 
             aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+
+            # Pull Docker image
+            docker pull $IMAGE_URL:$DOCKER_TAG
 
             # Deployment
             echo "Deploying $DOCKER_TAG"
