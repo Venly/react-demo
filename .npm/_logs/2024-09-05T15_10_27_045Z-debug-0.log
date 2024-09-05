@@ -1,0 +1,15 @@
+0 verbose cli /usr/local/bin/node /usr/local/bin/npm
+1 info using npm@10.7.0
+2 info using node@v18.20.4
+3 silly config:load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config:load:file:/home/runner/work/react-demo/react-demo/connect-sdk/.npmrc
+5 silly config:load:file:/home/runner/work/react-demo/react-demo/.npmrc
+6 silly config:load:file:/usr/local/etc/npmrc
+7 verbose title npm version preminor
+8 verbose argv "version" "preminor" "--preid" "SNAPSHOT" "--git-tag-version" "false"
+9 verbose logfile logs-max:10 dir:/home/runner/work/react-demo/react-demo/.npm/_logs/2024-09-05T15_10_27_045Z-
+10 verbose logfile /home/runner/work/react-demo/react-demo/.npm/_logs/2024-09-05T15_10_27_045Z-debug-0.log
+11 silly logfile done cleaning log files
+12 verbose version Not tagging: not in a git repo or no git cmd
+13 verbose exit 0
+14 info ok
