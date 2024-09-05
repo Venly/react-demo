@@ -6,7 +6,15 @@ on:
         type: string
         description: "Branch name, Version number or Sha hash to deploy"
         required: true
-
+      environment:
+        type: choice
+        description: "Environment to deploy to"
+        required: true
+        default: "qa"
+        options:
+          - prd
+          - qa
+          - staging
 permissions:
   actions: read
   checks: read
@@ -50,38 +58,72 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ steps.aws_creds.outputs.aws-access-key-id }}
           AWS_SECRET_ACCESS_KEY: ${{ steps.aws_creds.outputs.aws-secret-access-key }}
           AWS_SESSION_TOKEN: ${{ steps.aws_creds.outputs.aws-session-token }}
+          AWS_ACCOUNT_ID: ${{ steps.aws_creds.outputs.aws-account-id }}
           SHA: ${{ github.sha }}
-          TAG: ${{ inputs.branch_to_deploy }}
+          DOCKER_TAG: ${{ inputs.branch_to_deploy }}
+          ENVIRONMENT: ${{ inputs.environment }}
         with:
           host: ${{ secrets.DEMO_ARKETYPE_HOST }}
           username: ${{ secrets.DEMO_ARKETYPE_USER }}
           key: ${{ secrets.ACTIONS_PRIVATE_SSH_KEY }}
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN
           script: |
+            #!/bin/bash
+            set -x
             echo "sha: ${{ env.SHA }}"
             export AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}
             export AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}
             export AWS_SESSION_TOKEN=${{ env.AWS_SESSION_TOKEN }}
             export AWS_SESSION_TOKEN=${{ env.AWS_SESSION_TOKEN }}
-            aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com
-            if [[ "${{ inputs.branch_to_deploy }}" == "develop" ]]; then
-              echo "Deploying ${{ github.ref_name}}"
-              bash /home/jenkins/restart-react-qa.sh
-            elif [[ "${{ inputs.branch_to_deploy }}" == main || "${{ inputs.branch_to_deploy }}" == release* ]]; then
-              echo "Deploying ${{ inputs.branch_to_deploy }}"
-              if [[ "${{ inputs.branch_to_deploy }}" == "main" ]]; then
-                # Deploy to both production and staging for the main branch
-                docker tag ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:${{ inputs.branch_to_deploy }} ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:staging
-                docker push ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:staging
-                bash /home/jenkins/restart-react-prd.sh
-                bash /home/jenkins/restart-react-staging.sh
-              else
-                # Deploy to staging for release branches
-                docker tag ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:${{ github.ref_name }} ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:staging
-                bash /home/jenkins/restart-react-staging.sh
-              fi
-            else
-              echo "Unknown branch: ${{ inputs.branch_to_deploy }}"
-              exit 1
-            fi
-            docker logout ${{ steps.aws_creds.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com
+
+            # Parameters
+            ENVIRONMENT=${{ inputs.environment }}
+            DOCKER_TAG=${{ inputs.branch_to_deploy }}
+
+            # Define port based on environment
+            case "$ENVIRONMENT" in
+                staging)
+                    DOCKER_PORT=5001
+                    ;;
+                qa)
+                    DOCKER_PORT=5000
+                    ;;
+                prd)
+                    DOCKER_PORT=5002
+                    ;;
+                *)
+                    echo "Unknown environment: $ENVIRONMENT"
+                    exit 1
+                    ;;
+            esac
+
+            # Docker image URL
+            IMAGE_URL="${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1"
+
+            # Create the environment file for systemd
+            ENV_FILE="/etc/default/venly-react-${ENVIRONMENT}"
+            {
+                echo "DOCKER_IMAGE_URL=${IMAGE_URL}"
+                echo "DOCKER_TAG=${DOCKER_TAG}"
+                echo "PORT_MAPPING=127.0.0.1:${DOCKER_PORT}:5173"
+            } > $ENV_FILE
+
+            # Docker login
+            aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+
+            # Prune Docker system
+            docker system prune -f
+
+            # Pull Docker image
+            docker pull $IMAGE_URL:$DOCKER_TAG
+
+            # Deployment
+            echo "Deploying $DOCKER_TAG"
+            SERVICE_NAME="venly-react@${ENVIRONMENT}.service"
+            sudo systemctl stop $SERVICE_NAME
+            sudo systemctl start $SERVICE_NAME
+
+            # Docker logout
+            docker logout ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+
+            echo "Deployment to $ENVIRONMENT completed successfully"
