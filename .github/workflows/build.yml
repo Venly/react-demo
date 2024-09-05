@@ -245,7 +245,6 @@ jobs:
     if: startsWith(github.ref, 'refs/heads/hotfix-') || startsWith(github.ref, 'refs/heads/release-')
     needs:
       - build
-      - docker
     runs-on: ubuntu-latest
     outputs:
       runner_name: ${{ runner.name }}
@@ -255,9 +254,9 @@ jobs:
         with:
           token: ${{ secrets.VENLY_GITHUB_ACTIONS_TOKEN }}
 
-      - name: 🔄 Merge Back To Develop
-        id: merge_back
-        uses: ArkaneNetwork/venly-github-workflows/.github/actions/merge_back@main
+      - name: 🔄 Merge Back
+        if: startsWith(github.ref, 'refs/heads/hotfix-') || startsWith(github.ref, 'refs/heads/release-')
+        uses: ./.github/actions/merge_back
         with:
-          branch: ${{ github.ref }}
+          branch: ${{ github.ref_name }}
           token: ${{ secrets.VENLY_GITHUB_ACTIONS_TOKEN }}
