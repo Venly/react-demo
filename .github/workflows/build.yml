@@ -62,7 +62,7 @@ jobs:
   # Job: Build Docker
   # =====================================================
   docker:
-    if: ${{ success() && github.event_name != 'pull_request' && contains(fromJSON('["main", "master", "develop"]'), github.ref_name) || startsWith(github.ref_name, 'release-') || startsWith(github.ref_name, 'hotfix-') }}
+    if: ${{ success() && github.event_name != 'pull_request' && contains(fromJSON('["main", "master", "develop"]'), github.ref_name) || startsWith(github.ref_name, 'release-') || startsWith(github.ref_name, 'hotfix-') || startsWith(github.ref_name, 'VENLY-7920') }}
     runs-on: ubuntu-latest
     needs: build
     strategy:
@@ -81,188 +81,194 @@ jobs:
         uses: ./.github/actions/build_docker
         with:
           aws_role: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
+          branch_tag: ${{ needs.build.outputs.branch_tag }}
+          build_args: |
+            VERSION=${{ needs.build.outputs.version_tag }} 
+            DD_GIT_REPOSITORY_URL=git@github.com:${{ github.repository }}.git 
+            DD_GIT_COMMIT_SHA=${{ github.sha }}
+            VITE_CLIENT_ID=ReactDemo
+            VITE_ENV=${{ startsWith(github.ref_name, 'release-') && 'staging' || (github.ref_name == 'main' && 'prd' || 'qa') }}
           docker_context: ${{ matrix.docker_context }}
           ecr_repo: ${{ matrix.ecr }}
+          push_image: false
           sha_tag: ${{ needs.build.outputs.sha_tag }}
           version_tag: ${{ needs.build.outputs.version_tag }}
-          branch_tag: ${{ needs.build.outputs.branch_tag }}
-          push_image: true
-  # =====================================================
-  # Job: Deploy QA
-  # =====================================================
-  deploy-qa:
-    needs:
-      - build
-      - docker
-    runs-on: ubuntu-latest
-    if: github.event_name != 'workflow_dispatch' && github.ref_name == 'develop'
-    steps:
-      - name: 🔑 Configure AWS credentials
-        id: aws_creds
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: eu-west-1
-          role-to-assume: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
-          role-session-name: OIDCSession
-          mask-aws-account-id: false
-          output-credentials: true
+  # # =====================================================
+  # # Job: Deploy QA
+  # # =====================================================
+  # deploy-qa:
+  #   needs:
+  #     - build
+  #     - docker
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name != 'workflow_dispatch' && github.ref_name == 'develop'
+  #   steps:
+  #     - name: 🔑 Configure AWS credentials
+  #       id: aws_creds
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-region: eu-west-1
+  #         role-to-assume: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
+  #         role-session-name: OIDCSession
+  #         mask-aws-account-id: false
+  #         output-credentials: true
 
-      - name: 🚀 Deploy
-        uses: appleboy/ssh-action@v1.0.3
-        env:
-          AWS_ACCESS_KEY_ID: ${{ steps.aws_creds.outputs.aws-access-key-id }}
-          AWS_SECRET_ACCESS_KEY: ${{ steps.aws_creds.outputs.aws-secret-access-key }}
-          AWS_SESSION_TOKEN: ${{ steps.aws_creds.outputs.aws-session-token }}
-          AWS_ACCOUNT_ID: ${{ steps.aws_creds.outputs.aws-account-id }}
-          SHA: ${{ github.sha }}
-          TAG: ${{ github.ref_name}}
-        with:
-          host: ${{ secrets.DEMO_ARKETYPE_HOST }}
-          username: ${{ secrets.DEMO_ARKETYPE_USER }}
-          key: ${{ secrets.ACTIONS_PRIVATE_SSH_KEY }}
-          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN
-          script: |
-            #!/bin/bash
-            set -x
+  #     - name: 🚀 Deploy
+  #       uses: appleboy/ssh-action@v1.0.3
+  #       env:
+  #         AWS_ACCESS_KEY_ID: ${{ steps.aws_creds.outputs.aws-access-key-id }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ steps.aws_creds.outputs.aws-secret-access-key }}
+  #         AWS_SESSION_TOKEN: ${{ steps.aws_creds.outputs.aws-session-token }}
+  #         AWS_ACCOUNT_ID: ${{ steps.aws_creds.outputs.aws-account-id }}
+  #         SHA: ${{ github.sha }}
+  #         TAG: ${{ github.ref_name}}
+  #       with:
+  #         host: ${{ secrets.DEMO_ARKETYPE_HOST }}
+  #         username: ${{ secrets.DEMO_ARKETYPE_USER }}
+  #         key: ${{ secrets.ACTIONS_PRIVATE_SSH_KEY }}
+  #         envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN
+  #         script: |
+  #           #!/bin/bash
+  #           set -x
 
-            # Parameters (replace these with actual values or script parameters)
-            ENVIRONMENT="qa"
-            DOCKER_TAG="${{ github.ref_name }}"
+  #           # Parameters (replace these with actual values or script parameters)
+  #           ENVIRONMENT="qa"
+  #           DOCKER_TAG="${{ github.ref_name }}"
 
-            # Docker image URL
-            IMAGE_URL="${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1"
+  #           # Docker image URL
+  #           IMAGE_URL="${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1"
 
-            # Define port based on environment
-            DOCKER_PORT=5000
+  #           # Define port based on environment
+  #           DOCKER_PORT=5000
 
-            # Create or update the environment file for systemd
-            ENV_FILE="/etc/default/venly-react-${ENVIRONMENT}"
-            {
-                echo "DOCKER_IMAGE_URL=${IMAGE_URL}"
-                echo "DOCKER_TAG=${DOCKER_TAG}"
-                echo "PORT_MAPPING=127.0.0.1:${DOCKER_PORT}:5173"
-            } > $ENV_FILE
+  #           # Create or update the environment file for systemd
+  #           ENV_FILE="/etc/default/venly-react-${ENVIRONMENT}"
+  #           {
+  #               echo "DOCKER_IMAGE_URL=${IMAGE_URL}"
+  #               echo "DOCKER_TAG=${DOCKER_TAG}"
+  #               echo "PORT_MAPPING=127.0.0.1:${DOCKER_PORT}:5173"
+  #           } > $ENV_FILE
 
-            echo "sha: ${{ env.SHA }}"
-            echo "branch: ${{ github.ref_name }}"
+  #           echo "sha: ${{ env.SHA }}"
+  #           echo "branch: ${{ github.ref_name }}"
 
-            # AWS credentials and Docker login
-            export AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}
-            export AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}
-            export AWS_SESSION_TOKEN=${{ env.AWS_SESSION_TOKEN }}
+  #           # AWS credentials and Docker login
+  #           export AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}
+  #           export AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}
+  #           export AWS_SESSION_TOKEN=${{ env.AWS_SESSION_TOKEN }}
 
-            aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+  #           aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
 
-            # Pull Docker image
-            docker pull $IMAGE_URL:$DOCKER_TAG
+  #           # Pull Docker image
+  #           docker pull $IMAGE_URL:$DOCKER_TAG
 
-            # Deployment
-            echo "Deploying $DOCKER_TAG"
-            SERVICE_NAME="venly-react@${ENVIRONMENT}.service"
-            sudo systemctl stop $SERVICE_NAME
-            sudo systemctl start $SERVICE_NAME
+  #           # Deployment
+  #           echo "Deploying $DOCKER_TAG"
+  #           SERVICE_NAME="venly-react@${ENVIRONMENT}.service"
+  #           sudo systemctl stop $SERVICE_NAME
+  #           sudo systemctl start $SERVICE_NAME
 
-            # Docker logout
-            docker logout ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+  #           # Docker logout
+  #           docker logout ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
 
-            echo "Deployment to $ENVIRONMENT completed successfully"
-  # =====================================================
-  # Job: Deploy Release to Staging
-  # =====================================================
-  deploy-release-to-staging:
-    needs:
-      - build
-    runs-on: ubuntu-latest
-    if: github.event_name != 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release-')
-    steps:
-      - name: 🔑 Configure AWS credentials
-        id: aws_creds
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: eu-west-1
-          role-to-assume: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
-          role-session-name: OIDCSession
-          mask-aws-account-id: true
-          output-credentials: true
+  #           echo "Deployment to $ENVIRONMENT completed successfully"
+  # # =====================================================
+  # # Job: Deploy Release to Staging
+  # # =====================================================
+  # deploy-release-to-staging:
+  #   needs:
+  #     - build
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name != 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release-')
+  #   steps:
+  #     - name: 🔑 Configure AWS credentials
+  #       id: aws_creds
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-region: eu-west-1
+  #         role-to-assume: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
+  #         role-session-name: OIDCSession
+  #         mask-aws-account-id: true
+  #         output-credentials: true
 
-      - name: 🚀 Deploy
-        uses: appleboy/ssh-action@v1.0.3
-        env:
-          AWS_ACCESS_KEY_ID: ${{ steps.aws_creds.outputs.aws-access-key-id }}
-          AWS_SECRET_ACCESS_KEY: ${{ steps.aws_creds.outputs.aws-secret-access-key }}
-          AWS_SESSION_TOKEN: ${{ steps.aws_creds.outputs.aws-session-token }}
-          AWS_ACCOUNT_ID: ${{ steps.aws_creds.outputs.aws-account-id }}
-          SHA: ${{ github.sha }}
-          TAG: ${{ github.ref_name}}
-        with:
-          host: ${{ secrets.DEMO_ARKETYPE_HOST }}
-          username: ${{ secrets.DEMO_ARKETYPE_USER }}
-          key: ${{ secrets.ACTIONS_PRIVATE_SSH_KEY }}
-          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN
-          script: |
-            #!/bin/bash
-            set -x
+  #     - name: 🚀 Deploy
+  #       uses: appleboy/ssh-action@v1.0.3
+  #       env:
+  #         AWS_ACCESS_KEY_ID: ${{ steps.aws_creds.outputs.aws-access-key-id }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ steps.aws_creds.outputs.aws-secret-access-key }}
+  #         AWS_SESSION_TOKEN: ${{ steps.aws_creds.outputs.aws-session-token }}
+  #         AWS_ACCOUNT_ID: ${{ steps.aws_creds.outputs.aws-account-id }}
+  #         SHA: ${{ github.sha }}
+  #         TAG: ${{ github.ref_name}}
+  #       with:
+  #         host: ${{ secrets.DEMO_ARKETYPE_HOST }}
+  #         username: ${{ secrets.DEMO_ARKETYPE_USER }}
+  #         key: ${{ secrets.ACTIONS_PRIVATE_SSH_KEY }}
+  #         envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN
+  #         script: |
+  #           #!/bin/bash
+  #           set -x
 
-            # Parameters (replace these with actual values or script parameters)
-            ENVIRONMENT="staging"
-            DOCKER_TAG="${{ github.ref_name }}"
+  #           # Parameters (replace these with actual values or script parameters)
+  #           ENVIRONMENT="staging"
+  #           DOCKER_TAG="${{ github.ref_name }}"
 
-            # Docker image URL
-            IMAGE_URL="${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1"
+  #           # Docker image URL
+  #           IMAGE_URL="${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1"
 
-            # Define port based on environment
-            DOCKER_PORT=5001
+  #           # Define port based on environment
+  #           DOCKER_PORT=5001
 
-            # Create or update the environment file for systemd
-            ENV_FILE="/etc/default/venly-react-${ENVIRONMENT}"
-            {
-                echo "DOCKER_IMAGE_URL=${IMAGE_URL}"
-                echo "DOCKER_TAG=${DOCKER_TAG}"
-                echo "PORT_MAPPING=127.0.0.1:${DOCKER_PORT}:5173"
-            } > $ENV_FILE
+  #           # Create or update the environment file for systemd
+  #           ENV_FILE="/etc/default/venly-react-${ENVIRONMENT}"
+  #           {
+  #               echo "DOCKER_IMAGE_URL=${IMAGE_URL}"
+  #               echo "DOCKER_TAG=${DOCKER_TAG}"
+  #               echo "PORT_MAPPING=127.0.0.1:${DOCKER_PORT}:5173"
+  #           } > $ENV_FILE
 
-            echo "sha: ${{ env.SHA }}"
-            echo "Following Release will be deployed on staging: ${{ github.ref_name }}"
+  #           echo "sha: ${{ env.SHA }}"
+  #           echo "Following Release will be deployed on staging: ${{ github.ref_name }}"
 
-            # AWS credentials and Docker login
-            export AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}
-            export AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}
-            export AWS_SESSION_TOKEN=${{ env.AWS_SESSION_TOKEN }}
+  #           # AWS credentials and Docker login
+  #           export AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}
+  #           export AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}
+  #           export AWS_SESSION_TOKEN=${{ env.AWS_SESSION_TOKEN }}
 
-            aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+  #           aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
 
-            # Pull Docker image
-            docker pull $IMAGE_URL:$DOCKER_TAG
+  #           # Pull Docker image
+  #           docker pull $IMAGE_URL:$DOCKER_TAG
 
-            # Deployment
-            echo "Deploying $DOCKER_TAG"
-            SERVICE_NAME="venly-react@${ENVIRONMENT}.service"
-            sudo systemctl stop $SERVICE_NAME
-            sudo systemctl start $SERVICE_NAME
+  #           # Deployment
+  #           echo "Deploying $DOCKER_TAG"
+  #           SERVICE_NAME="venly-react@${ENVIRONMENT}.service"
+  #           sudo systemctl stop $SERVICE_NAME
+  #           sudo systemctl start $SERVICE_NAME
 
-            # Docker logout
-            docker logout ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+  #           # Docker logout
+  #           docker logout ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
 
-            echo "Release ${{ github.ref_name }} Deployment to $ENVIRONMENT completed successfully"
-  # =====================================================
-  # Job: Merge Back
-  # =====================================================
-  merge-back:
-    if: startsWith(github.ref, 'refs/heads/hotfix-') || startsWith(github.ref, 'refs/heads/release-')
-    needs:
-      - build
-    runs-on: ubuntu-latest
-    outputs:
-      runner_name: ${{ runner.name }}
-    steps:
-      - name: ✅ Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.VENLY_GITHUB_ACTIONS_TOKEN }}
+  #           echo "Release ${{ github.ref_name }} Deployment to $ENVIRONMENT completed successfully"
+  # # =====================================================
+  # # Job: Merge Back
+  # # =====================================================
+  # merge-back:
+  #   if: startsWith(github.ref, 'refs/heads/hotfix-') || startsWith(github.ref, 'refs/heads/release-')
+  #   needs:
+  #     - build
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     runner_name: ${{ runner.name }}
+  #   steps:
+  #     - name: ✅ Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         token: ${{ secrets.VENLY_GITHUB_ACTIONS_TOKEN }}
 
-      - name: 🔄 Merge Back
-        if: startsWith(github.ref, 'refs/heads/hotfix-') || startsWith(github.ref, 'refs/heads/release-')
-        uses: ./.github/actions/merge_back
-        with:
-          branch: ${{ github.ref_name }}
-          token: ${{ secrets.VENLY_GITHUB_ACTIONS_TOKEN }}
+  #     - name: 🔄 Merge Back
+  #       if: startsWith(github.ref, 'refs/heads/hotfix-') || startsWith(github.ref, 'refs/heads/release-')
+  #       uses: ./.github/actions/merge_back
+  #       with:
+  #         branch: ${{ github.ref_name }}
+  #         token: ${{ secrets.VENLY_GITHUB_ACTIONS_TOKEN }}
