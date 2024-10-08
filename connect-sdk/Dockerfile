@@ -1,11 +1,23 @@
 # Stage 1: Build Stage
-FROM node:lts-bullseye-slim as build
+FROM --platform=linux/arm64 node:lts-bullseye-slim as build
 
 WORKDIR /usr/src/app
 
+# Set Arguments for Application
 ARG VITE_CLIENT_ID
 ARG VITE_ENV
 
+# Set Arguments for Datadog
+ARG VERSION=0.0.0
+ARG DD_GIT_REPOSITORY_URL
+ARG DD_GIT_COMMIT_SHA
+
+# Set Environment Variables for Datadog
+ENV VERSION=${VERSION}
+ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL} 
+ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
+
+# Set Environment Variables for Application
 ENV VITE_CLIENT_ID=${VITE_CLIENT_ID}
 ENV VITE_ENV=${VITE_ENV}
 
@@ -19,7 +31,7 @@ RUN apt-get update && apt-get -y upgrade && apt-get install -y curl \
 RUN npm run build
 
 # Stage 2: Production Stage
-FROM node:lts-bullseye-slim
+FROM --platform=linux/arm64 node:lts-bullseye-slim
 
 WORKDIR /usr/src/app
 
