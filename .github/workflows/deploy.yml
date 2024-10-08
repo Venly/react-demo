@@ -54,17 +54,11 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: ℹ️ Deploy info
-        uses: ArkaneNetwork/venly-github-workflows/.github/actions/deploy_info@main
-        with:
-          environment: ${{ matrix.environment }}
-          deployed_tag: ${{ inputs.tag_to_deploy }}
-
       - name: 🚀 Deploy Application
-        uses: ArkaneNetwork/venly-github-workflows/.github/actions/ecs_deploy@main
+        uses: ./.github/actions/ecs_deploy
         with:
           aws_region: ${{ env.AWS_REGION }}
-          aws_role: ${{ secrets.WALLET_NONPRD_DEPLOY_ROLE }}
+          aws_role: ${{ secrets.NONPRD_DEPLOY_ROLE }}
           aws_ecr_role: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
           cluster_name: ${{ env.CLUSTER_NAME_PREFIX }}
           ecr_repo: ${{ matrix.ecr }}
@@ -101,7 +95,7 @@ jobs:
         uses: ArkaneNetwork/venly-github-workflows/.github/actions/ecs_deploy@main
         with:
           aws_region: ${{ env.AWS_REGION }}
-          aws_role: ${{ secrets.WALLET_PRD_DEPLOY_ROLE }}
+          aws_role: ${{ secrets.PRD_DEPLOY_ROLE }}
           aws_ecr_role: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
           cluster_name: ${{ env.CLUSTER_NAME_PREFIX }}
           ecr_repo: ${{ matrix.ecr }}
