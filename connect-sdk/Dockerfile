@@ -39,7 +39,7 @@ COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/package*.json ./
 
 # Install only production dependencies
-RUN npm install --only=production
+RUN apt-get update && apt-get install -y curl && npm install --only=production
 
 # Command to run your application using npx to ensure local install
 CMD ["npx", "serve", "-s", "dist", "-l", "5173"]
