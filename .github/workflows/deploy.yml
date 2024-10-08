@@ -40,7 +40,7 @@ jobs:
   # Job: Deploy Non-Production Environments
   # =====================================================
   deploy_non_prd:
-    runs-on: docker-runner
+    runs-on: ubuntu-latest
     if: (github.event_name == 'workflow_dispatch' && (inputs.environment == 'qa' || inputs.environment == 'staging'))
     strategy:
       matrix:
@@ -77,7 +77,7 @@ jobs:
   # Job: Deploy Production Environments
   # =====================================================
   deploy_prd:
-    runs-on: docker-runner
+    runs-on: ubuntu-latest
     if: (github.event_name == 'workflow_dispatch' && (inputs.environment == 'prd' || inputs.environment == 'sandbox'))
     strategy:
       matrix:
