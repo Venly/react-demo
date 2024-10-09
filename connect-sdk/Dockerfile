@@ -34,21 +34,25 @@ FROM --platform=linux/arm64 node:lts-bullseye-slim
 
 WORKDIR /usr/src/app
 
-# Set Environment Variables for Datadog in the final container
-ENV VERSION=${VERSION}
-ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL}
-ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
-
-# Set Environment Variables for Application in the final container
-ENV VITE_CLIENT_ID=${VITE_CLIENT_ID}
-ENV VITE_ENV=${VITE_ENV}
-
 # Install curl in the production container
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Copy built application and package files from the build stage
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/package*.json ./
+
+# Set Environment Variables for Datadog in the final container
+ARG VERSION
+ARG DD_GIT_REPOSITORY_URL
+ARG DD_GIT_COMMIT_SHA
+ARG VITE_CLIENT_ID
+ARG VITE_ENV
+
+ENV VERSION=${VERSION}
+ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL}
+ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
+ENV VITE_CLIENT_ID=${VITE_CLIENT_ID}
+ENV VITE_ENV=${VITE_ENV}
 
 # Install only production dependencies
 RUN npm install --only=production
