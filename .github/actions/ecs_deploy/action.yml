@@ -332,6 +332,7 @@ runs:
       shell: bash
       run: |
         cat "${{ steps.task-def.outputs.task-definition }}" > ${{ inputs.service_name }}-${{ inputs.environment }}.json
+        cat ${{ inputs.service_name }}-${{ inputs.environment }}.json
 
     - name: 🚀 Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
