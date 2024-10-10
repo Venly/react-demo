@@ -43,7 +43,7 @@ To use this action in your workflow, add the following step:
 
 ```yaml
 - name: Build and Push Container
-  uses: ArkaneNetwork/venly-github-workflows/.github/actions/build_docker@main
+  uses: Venly/venly-github-workflows/.github/actions/build_docker@main
   with:
     aws_region: "<your-aws-region>"
     aws_role: "<your-aws-role>"
