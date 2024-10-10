@@ -24,7 +24,8 @@ ENV VITE_ENV=${VITE_ENV}
 COPY . .
 
 # Install npm dependencies
-RUN apt-get update && apt-get -y upgrade && npm install
+RUN apt-get update && apt-get -y upgrade \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y npm
 
 # Build the application
 RUN VITE_CLIENT_ID=${VITE_CLIENT_ID} VITE_ENV=${VITE_ENV} npm run build
@@ -35,7 +36,7 @@ FROM --platform=linux/arm64 node:lts-bullseye-slim
 WORKDIR /usr/src/app
 
 # Install curl in the production container
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Copy built application and package files from the build stage
 COPY --from=build /usr/src/app/dist ./dist
@@ -55,7 +56,7 @@ ENV VITE_CLIENT_ID=${VITE_CLIENT_ID}
 ENV VITE_ENV=${VITE_ENV}
 
 # Install only production dependencies
-RUN npm install --only=production
+RUN DEBIAN_FRONTEND=noninteractive npm install --only=production
 
 # Set DEBUG environment variable for verbose logging
 ENV DEBUG=serve:*
