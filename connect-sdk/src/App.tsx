@@ -7,6 +7,9 @@ import Alerts from './components/Alerts'
 import Nav from './components/Nav'
 import Loading from './pages/Loading'
 
+// Logging when the component mounts
+console.log('App component is being initialized');
+
 Modal.setAppElement('#root')
 
 export default function App() {
@@ -15,20 +18,20 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    console.info('App mounted, checking authentication');
+    console.log('App mounted, checking authentication');
     checkAuthenticated()
   }, [])
 
   async function checkAuthenticated() {
     try {
       const res = await venlyConnect.checkAuthenticated()
-      console.info('Authentication check result:', res);
+      console.log('Authentication check result:', res);
 
       if (!res?.isAuthenticated) {
-        console.info('User is not authenticated, redirecting to /login');
+        console.log('User is not authenticated, navigating to /login');
         navigate('/login', { replace: true })
       } else {
-        console.info('User is authenticated');
+        console.log('User is authenticated, continuing');
       }
     }
     catch(error) {
@@ -39,15 +42,15 @@ export default function App() {
   }
 
   if (isLoading) {
-    console.info('Loading state, rendering Loading component');
+    console.log('Loading state, rendering Loading component');
     return <Loading />
   }
   else if (location.pathname == '/login') {
-    console.info('Current route is /login');
+    console.log('User is at /login route');
     return <Outlet />
   }
 
-  console.info('Rendering main application layout with Nav and Alerts components');
+  console.log('Rendering main application layout with Nav and Alerts');
   return <>
     <Nav />
     <div className="main">

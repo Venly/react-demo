@@ -8,6 +8,10 @@ import Login from './pages/Login.tsx'
 import Home from './pages/Home.tsx'
 import Wallet from './pages/Wallet.tsx'
 
+// Logging at the very start
+console.log('Starting React application');
+
+// Set up router
 const router = createBrowserRouter([
   {
     element: <App />,
@@ -28,8 +32,9 @@ const router = createBrowserRouter([
   },
 ])
 
-console.info('Initializing application with routes');
+console.log('Router initialized with routes:', router.routes);
 
+// Rendering the application
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <div className="app">
@@ -37,3 +42,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </div>
   </React.StrictMode>
 )
+
+console.log('Application rendered successfully');
