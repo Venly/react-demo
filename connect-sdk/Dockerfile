@@ -27,7 +27,7 @@ COPY . .
 RUN apt-get update && apt-get -y upgrade && npm install
 
 # Build the application
-RUN npm run build
+RUN VITE_CLIENT_ID=${VITE_CLIENT_ID} VITE_ENV=${VITE_ENV} npm run build
 
 # Stage 2: Production Stage
 FROM --platform=linux/arm64 node:lts-bullseye-slim
@@ -45,14 +45,10 @@ COPY --from=build /usr/src/app/package*.json ./
 ARG VERSION
 ARG DD_GIT_REPOSITORY_URL
 ARG DD_GIT_COMMIT_SHA
-ARG VITE_CLIENT_ID
-ARG VITE_ENV
 
 ENV VERSION=${VERSION}
 ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL}
 ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
-ENV VITE_CLIENT_ID=${VITE_CLIENT_ID}
-ENV VITE_ENV=${VITE_ENV}
 
 # Install only production dependencies
 RUN npm install --only=production
