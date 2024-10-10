@@ -59,3 +59,5 @@ RUN npm install --only=production
 
 # Command to run your application using npx to ensure local install
 CMD ["npx", "serve", "-s", "dist", "-l", "5173"]
+
+EXPOSE 5173
