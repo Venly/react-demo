@@ -132,7 +132,7 @@ runs:
         compression-level: 9
 
     - name: Build and push
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       env:
         BRANCH_TAG: ${{ inputs.branch_tag }}
         CURRENT_DATE: ${{ env.CURRENT_DATE }}
@@ -143,6 +143,7 @@ runs:
         VERSION_SHA_TAG: "${{ env.org_opencontainers_image_version }}-${{ inputs.sha_tag }}"
         VERSION_TAG: ${{ env.org_opencontainers_image_version }}
       with:
+        platforms: linux/amd64
         context: "${{ inputs.docker_context }}"
         file: "${{ inputs.docker_file }}"
         push: ${{ inputs.push_image }}
