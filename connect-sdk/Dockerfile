@@ -58,6 +58,6 @@ ENV VITE_ENV=${VITE_ENV}
 RUN npm install --only=production
 
 # Command to run your application using npx to ensure local install
-CMD ["tail", "-f", "/dev/null"]
+CMD ["npx", "serve", "-s", "dist", "-l", "5173"]
 
 EXPOSE 5173
