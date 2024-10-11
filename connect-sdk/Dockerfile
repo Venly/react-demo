@@ -58,9 +58,6 @@ ENV VITE_ENV=${VITE_ENV}
 # Install only production dependencies
 RUN DEBIAN_FRONTEND=noninteractive npm install --only=production
 
-# Set DEBUG environment variable for verbose logging
-ENV DEBUG=serve:*
-
 # Command to run your application with verbose logging via DEBUG
 CMD ["npx", "serve", "-s", "dist", "-l", "5173"]
 
