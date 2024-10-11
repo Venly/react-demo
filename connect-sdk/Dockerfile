@@ -23,9 +23,10 @@ ENV VITE_ENV=${VITE_ENV}
 
 COPY . .
 
-# Install npm dependencies
+# Install npm dependencies including dev dependencies
 RUN apt-get update && apt-get -y upgrade \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y npm
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y npm \
+    && npm install
 
 # Build the application
 RUN VITE_CLIENT_ID=${VITE_CLIENT_ID} VITE_ENV=${VITE_ENV} npm run build
