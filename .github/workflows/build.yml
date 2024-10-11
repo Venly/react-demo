@@ -9,7 +9,7 @@ on:
   create:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 env:
   AWS_REGION: "eu-west-1"
   CLUSTER_NAME_PREFIX: demo-projects
