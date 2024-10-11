@@ -36,7 +36,9 @@ FROM --platform=linux/arm64 node:lts-bullseye-slim
 WORKDIR /usr/src/app
 
 # Install curl in the production container
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy built application and package files from the build stage
 COPY --from=build /usr/src/app/dist ./dist
