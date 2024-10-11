@@ -33,7 +33,7 @@ To use this action in your workflow, add the following step:
 
 ```yaml
 - name: Fetch Application Info
-  uses: ArkaneNetwork/venly-github-workflows/.github/actions/app_info@main
+  uses: Venly/venly-github-workflows/.github/actions/app_info@main
   with:
     branch: <your-branch-name>
 ```
