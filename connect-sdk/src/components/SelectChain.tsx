@@ -18,7 +18,7 @@ export default function SelectChain({
     <button type="button" className="input-dropdown" onBlur={() => setIsOpen(false)}>
       <div className={`input-dropdown__input ${isOpen ? 'active' : ''}`} onClick={() => setIsOpen(!isOpen)}>
         <img src={`/chains/${selected.toLowerCase()}.svg`} className="input-dropdown__img" alt={selected} />
-        <span className="input-dropdown__text">{chains[selected].name} </span>
+        <span className="input-dropdown__text">{chains[selected]?.name} </span>
       </div>
       <svg className="input-dropdown__icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
@@ -33,7 +33,7 @@ export default function SelectChain({
                 onClick={() => onSelect(secretType)} 
               >
                 <img src={`/chains/${secretType.toLowerCase()}.svg`} className="input-dropdown__img" alt={secretType} />
-                <span className="input-dropdown__text">{chain.name}</span>
+                <span className="input-dropdown__text">{chain?.name}</span>
                 <svg className="input-dropdown__check" width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <path d="M16.6668 5L7.50016 14.1667L3.3335 10" stroke="currentColor" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
