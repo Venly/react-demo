@@ -24,7 +24,7 @@ export default function WalletInfo({
             <img className="wallet-header__img" src={`/chains/${wallet.secretType.toLowerCase()}.svg`} alt={wallet.secretType} />
             <div className="wallet-header__block">
               <p className="wallet-header__title">{wallet.description}</p>
-              <p className="wallet-header__subtitle">{chains[wallet.secretType].name}</p>
+              <p className="wallet-header__subtitle">{chains[wallet.secretType]?.name}</p>
             </div>
           </div>
 
