@@ -115,7 +115,17 @@ jobs:
             docker system prune -f
 
             # Pull Docker image
-            docker pull $IMAGE_URL:$DOCKER_TAG
+            if docker pull $IMAGE_URL:$DOCKER_TAG; then
+                echo "Successfully pulled $IMAGE_URL:$DOCKER_TAG"
+            else
+                echo "Failed to pull $IMAGE_URL:$DOCKER_TAG, falling back to local image."
+                if docker inspect $IMAGE_URL:$DOCKER_TAG > /dev/null 2>&1; then
+                    echo "Local image $IMAGE_URL:$DOCKER_TAG found."
+                else
+                    echo "Local image $IMAGE_URL:$DOCKER_TAG not found. Exiting."
+                    exit 1
+                fi
+            fi
 
             # Deployment
             echo "Deploying $DOCKER_TAG"
