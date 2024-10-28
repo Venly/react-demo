@@ -114,7 +114,7 @@ export default function Wallets() {
                   <img src={`/chains/${wallet.secretType.toLowerCase()}.svg`} className="table-grid__img" alt={wallet.secretType} />
                   <div className="table-grid__block">
                     <p className="table-grid__title">{wallet.description}</p>
-                    <p className="table-grid__subtitle">{chains[wallet.secretType].name}</p>
+                    <p className="table-grid__subtitle">{chains[wallet.secretType]?.name}</p>
                   </div>
                 </div>
               </td>
