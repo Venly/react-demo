@@ -17,3 +17,5 @@ Live app - <https://react-demo.venly.io>
 ### ConnectSDK ([npmjs](https://www.npmjs.com/package/@venly/connect))
 
 - [connect-sdk](connect-sdk)
+
+---
