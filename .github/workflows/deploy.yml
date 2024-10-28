@@ -85,14 +85,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: ℹ️ Deploy info
-        uses: ArkaneNetwork/venly-github-workflows/.github/actions/deploy_info@main
-        with:
-          environment: ${{ matrix.environment }}
-          deployed_tag: ${{ inputs.tag_to_deploy }}
-
       - name: 🚀 Deploy Application
-        uses: ArkaneNetwork/venly-github-workflows/.github/actions/ecs_deploy@main
+        uses: ./.github/actions/ecs_deploy
         with:
           aws_region: ${{ env.AWS_REGION }}
           aws_role: ${{ secrets.PRD_DEPLOY_ROLE }}
