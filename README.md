@@ -2,11 +2,11 @@
 
 ## Default Branch
 
-[![🏗️ Build](https://github.com/ArkaneNetwork/react-demo/actions/workflows/build.yml/badge.svg)](https://github.com/ArkaneNetwork/react-demo/actions/workflows/build.yml) [![🤕 Hotfix Start](https://github.com/ArkaneNetwork/react-demo/actions/workflows/hotfix_start.yml/badge.svg)](https://github.com/ArkaneNetwork/react-demo/actions/workflows/hotfix_start.yml) [![🩹 Hotfix Finish](https://github.com/ArkaneNetwork/react-demo/actions/workflows/hotfix_finish.yml/badge.svg)](https://github.com/ArkaneNetwork/react-demo/actions/workflows/hotfix_finish.yml) [![🛫 Release Start](https://github.com/ArkaneNetwork/react-demo/actions/workflows/release_start.yml/badge.svg)](https://github.com/ArkaneNetwork/react-demo/actions/workflows/release_start.yml) [![🛬 Release Finish](https://github.com/ArkaneNetwork/react-demo/actions/workflows/release_finish.yml/badge.svg)](https://github.com/ArkaneNetwork/react-demo/actions/workflows/release_finish.yml)
+[![🏗️ Build](https://github.com/Venly/react-demo/actions/workflows/build.yml/badge.svg)](https://github.com/Venly/react-demo/actions/workflows/build.yml) [![🤕 Hotfix Start](https://github.com/Venly/react-demo/actions/workflows/hotfix_start.yml/badge.svg)](https://github.com/Venly/react-demo/actions/workflows/hotfix_start.yml) [![🩹 Hotfix Finish](https://github.com/Venly/react-demo/actions/workflows/hotfix_finish.yml/badge.svg)](https://github.com/Venly/react-demo/actions/workflows/hotfix_finish.yml) [![🛫 Release Start](https://github.com/Venly/react-demo/actions/workflows/release_start.yml/badge.svg)](https://github.com/Venly/react-demo/actions/workflows/release_start.yml) [![🛬 Release Finish](https://github.com/Venly/react-demo/actions/workflows/release_finish.yml/badge.svg)](https://github.com/Venly/react-demo/actions/workflows/release_finish.yml)
 
 ## Main Branch
 
-[![🏗️ Build](https://github.com/ArkaneNetwork/react-demo/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/ArkaneNetwork/react-demo/actions/workflows/build.yml)
+[![🏗️ Build](https://github.com/Venly/react-demo/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/Venly/react-demo/actions/workflows/build.yml)
 
 ---
 

@@ -36,7 +36,7 @@ To use this action in your workflow, add the following step:
 
 ```yaml
 - name: Deploy to ECS
-  uses: ArkaneNetwork/venly-github-workflows/.github/actions/ecs_deploy@main
+  uses: Venly/venly-github-workflows/.github/actions/ecs_deploy@main
   with:
     aws_region: "<aws-region>"
     aws_role: "<aws-role>"
