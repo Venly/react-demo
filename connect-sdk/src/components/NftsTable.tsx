@@ -86,7 +86,7 @@ export default function Nfts({
             </td>
             <td>
               <div className="table-grid__block">
-                <p className="table-grid__title">{nft.contract.name}</p>
+                <p className="table-grid__title">{nft.contract?.name}</p>
                 <button type="button" className="table-grid__copy" onClick={e => onClickCopy(e, nft.contract.address)}>
                   <span className="table-grid__subtitle">{formatAddress(nft.contract.address)}</span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
