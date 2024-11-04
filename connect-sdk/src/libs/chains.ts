@@ -65,8 +65,12 @@ export const chains: Record<string, Chain> = {
     symbol: 'XPLA',
   },
   OPTIMISM: {
-    name: 'OPTIMISM',
+    name: 'Optimism',
     symbol: 'ETH',
+  },
+  SOLANA: {
+    name: 'Solana',
+    symbol: 'SOL',
   },
 }
 
@@ -77,5 +81,5 @@ export const evmChains: string[] = [
   'ETHEREUM',
   'MATIC',
   'XPLA',
-  'OPTIMISM'
+  'OPTIMISM',
 ]
