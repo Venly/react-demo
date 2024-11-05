@@ -10,7 +10,7 @@
     "buildAndServe": "tsc && vite build && serve -s dist -l 5173"
   },
   "dependencies": {
-    "@venly/connect": "^2.8.0-develop.6",
+    "@venly/connect": "^2.8.0-develop.1501",
     "jotai": "^2.8.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
