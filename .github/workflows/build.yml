@@ -82,7 +82,7 @@ jobs:
         uses: ./.github/actions/build_docker
         with:
           aws_role: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
-          branch_tag: ${{ needs.build.outputs.branch_tag }}
+          branch_tag: ${{ github.ref_name }}
           build_args: |
             VERSION=${{ needs.build.outputs.version_tag }} 
             DD_GIT_REPOSITORY_URL=git@github.com:${{ github.repository }}.git 
