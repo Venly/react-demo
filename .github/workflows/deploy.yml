@@ -56,6 +56,7 @@ jobs:
   # Job: Deploy Non-Production Environments
   # =====================================================
   deploy_non_prd:
+    needs: copy-image-tag
     runs-on: ubuntu-latest
     if: (github.event_name == 'workflow_dispatch' && (inputs.environment == 'qa' || inputs.environment == 'staging'))
     strategy:
@@ -88,6 +89,7 @@ jobs:
   # Job: Deploy Production Environments
   # =====================================================
   deploy_prd:
+    needs: copy-image-tag
     runs-on: ubuntu-latest
     if: (github.event_name == 'workflow_dispatch' && (inputs.environment == 'prd' || inputs.environment == 'sandbox'))
     strategy:
