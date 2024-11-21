@@ -36,27 +36,10 @@ permissions:
   statuses: read
 run-name: 🚀 Deploy ${{ inputs.tag_to_deploy	}} to ${{ inputs.environment }}
 jobs:
-  copy-image-tag:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-session-name: OIDCSession
-          mask-aws-account-id: false
-      - name: Copy Image (Temp)
-        run: |
-          aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 289334807197.dkr.ecr.eu-west-1.amazonaws.com
-          docker pull 289334807197.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-arm-eu-west-1:${{ inputs.tag_to_deploy }}
-          docker tag 289334807197.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-arm-eu-west-1:${{ inputs.tag_to_deploy }} 289334807197.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:${{ inputs.tag_to_deploy }}
-          docker push 289334807197.dkr.ecr.eu-west-1.amazonaws.com/venly-react-demo-eu-west-1:${{ inputs.tag_to_deploy }}
   # =====================================================
   # Job: Deploy Non-Production Environments
   # =====================================================
   deploy_non_prd:
-    needs: copy-image-tag
     runs-on: ubuntu-latest
     if: (github.event_name == 'workflow_dispatch' && (inputs.environment == 'qa' || inputs.environment == 'staging'))
     strategy:
@@ -89,7 +72,6 @@ jobs:
   # Job: Deploy Production Environments
   # =====================================================
   deploy_prd:
-    needs: copy-image-tag
     runs-on: ubuntu-latest
     if: (github.event_name == 'workflow_dispatch' && (inputs.environment == 'prd' || inputs.environment == 'sandbox'))
     strategy:
