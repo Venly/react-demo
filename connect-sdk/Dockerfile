@@ -24,7 +24,7 @@ COPY package*.json ./
 COPY . .
 
 # Install npm dependencies (including dev dependencies)
-RUN apt-get update && apt-get -y upgrade \
+RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y npm \
     && npm install
 

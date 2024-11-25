@@ -91,6 +91,7 @@ jobs:
             VITE_ENV=${{ startsWith(github.ref_name, 'release-') && 'staging' || (github.ref_name == 'main' && 'prd' || 'qa') }}
           docker_context: ${{ matrix.docker_context }}
           ecr_repo: ${{ matrix.ecr }}
+          platforms: linux/arm64
           push_image: true
           sha_tag: ${{ needs.build.outputs.sha_tag }}
           version_tag: ${{ startsWith(github.ref_name, 'release-') && 'staging' || (github.ref_name == 'main' && 'prd' || 'qa') }}
