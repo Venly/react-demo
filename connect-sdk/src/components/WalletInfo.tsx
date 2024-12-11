@@ -44,7 +44,7 @@ export default function WalletInfo({
             </div>
             <div className="wallet-info__block">
               <p className="wallet-info__label">Balance</p>
-              <p className="wallet-info__text">{wallet.balance?.balance.toFixed(6)} {wallet.balance?.symbol}</p>
+              <p className="wallet-info__text">{wallet.balance?.balance?.toFixed(6)} {wallet.balance?.symbol}</p>
             </div>
           </div>
         </>
