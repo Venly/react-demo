@@ -130,7 +130,7 @@ export default function Wallets() {
                 <span className="table-grid__subtitle">{new Date(wallet.createdAt ?? '').toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
               </td>
               <td>
-                <span className="table-grid__subtitle">{wallet.balance?.balance.toFixed(6)} {wallet.balance?.symbol}</span>
+                <span className="table-grid__subtitle">{wallet.balance?.balance?.toFixed(6)} {wallet.balance?.symbol}</span>
               </td>
               <td>
                 <div className="table-grid__actions">
