@@ -98,7 +98,7 @@ export default function Tokens({
               <span className="table-grid__subtitle">{token?.balance?.toFixed(6)} {token.symbol}</span>
             </td>
             <td>
-              <span className="table-grid__subtitle">{token?.exchange?.usdBalanceValue.toFixed(2) ?? '-'}</span>
+              <span className="table-grid__subtitle">{token?.exchange?.usdBalanceValue?.toFixed(2) ?? '-'}</span>
             </td>
             <td>
               <div className="table-grid__actions">
