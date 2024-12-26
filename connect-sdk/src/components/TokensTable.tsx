@@ -24,6 +24,10 @@ export default function Tokens({
     copyAddress(address)
   }
 
+  function handleImgError(event: any) {
+    event.target.src = '/placeholder-img.png'
+  }
+
   function renderTableBody() {
     if (!tokens) {
       return [0, 1].map(index => {
@@ -80,7 +84,7 @@ export default function Tokens({
           <tr className="table-grid__row" key={token.tokenAddress}>
             <td>
               <div className="table-grid__flex">
-                <img src={token.logo ?? '/chains/ethereum.svg'} className="table-grid__img" alt={token.logo}/>
+                <img src={token.logo ?? '/placeholder-img.png'} className="table-grid__img" alt={token.logo} onError={handleImgError}/>
                 <div className="table-grid__block">
                   <p className="table-grid__title">{token.name}</p>
                   <button type="button" className="table-grid__copy" onClick={e => onClickCopy(e, token.tokenAddress)}>
