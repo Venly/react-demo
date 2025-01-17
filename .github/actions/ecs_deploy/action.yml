@@ -335,7 +335,7 @@ runs:
         cat ${{ inputs.service_name }}-${{ inputs.environment }}.json
 
     - name: 🚀 Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v2
       id: ecs_deployment
       with:
         task-definition: ${{ inputs.service_name }}-${{ inputs.environment }}.json
