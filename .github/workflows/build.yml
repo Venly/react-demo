@@ -126,7 +126,6 @@ jobs:
           ecr_repo: ${{ matrix.ecr }}
           environment: ${{ matrix.environment }}
           service_name: ${{ matrix.service_name }}
-          slack_webhook: ${{ secrets.SLACK_APPROVALS_WEBHOOK }}
           tag_to_deploy: ${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
   # =====================================================
@@ -160,7 +159,6 @@ jobs:
           ecr_repo: ${{ matrix.ecr }}
           environment: ${{ matrix.environment }}
           service_name: ${{ matrix.service_name }}
-          slack_webhook: ${{ secrets.SLACK_APPROVALS_WEBHOOK }}
           tag_to_deploy: ${{ github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
   # =====================================================
