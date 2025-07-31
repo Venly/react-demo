@@ -72,6 +72,10 @@ export const chains: Record<string, Chain> = {
     name: 'Solana',
     symbol: 'SOL',
   },
+  SUI: {
+    name: 'Sui',
+    symbol: 'SUI',
+  },
 }
 
 export const evmChains: string[] = [
