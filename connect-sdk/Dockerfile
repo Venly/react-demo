@@ -1,5 +1,5 @@
 # Stage 1: Build Stage
-FROM --platform=linux/arm64 node:lts-bullseye-slim AS build
+FROM node:lts-bullseye-slim AS build
 
 WORKDIR /usr/src/app
 
@@ -19,20 +19,16 @@ ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 ENV VITE_CLIENT_ID=${VITE_CLIENT_ID}
 ENV VITE_ENV=${VITE_ENV}
 
-# Copy only necessary files to the build stage
+# Install dependencies first for better layer caching
 COPY package*.json ./
+RUN npm install
+
+# Copy source and build
 COPY . .
-
-# Install npm dependencies (including dev dependencies)
-RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y npm \
-    && npm install
-
-# Build the application
-RUN VITE_CLIENT_ID=${VITE_CLIENT_ID} VITE_ENV=${VITE_ENV} npm run build
+RUN npm run build
 
 # Stage 2: Production Stage
-FROM --platform=linux/arm64 node:alpine AS final
+FROM node:lts-alpine AS final
 
 WORKDIR /usr/src/app
 
@@ -53,12 +49,10 @@ ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 ENV VITE_CLIENT_ID=${VITE_CLIENT_ID}
 ENV VITE_ENV=${VITE_ENV}
 
-# Install only production dependencies using npm
+# Install only production dependencies
 RUN apk add --no-cache curl \
-    && npm install --only=production \
-    && rm -rf /var/cache/apk/*
+    && npm install --only=production
 
-# Command to run your application with verbose logging via DEBUG
 CMD ["npx", "serve", "-s", "dist", "-l", "5173"]
 
 EXPOSE 5173
