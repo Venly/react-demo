@@ -4,6 +4,9 @@ inputs:
   token:
     description: GitHub token for authentication
     required: true
+  work_directory:
+    description: "Optional working directory containing package.json"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -53,6 +56,9 @@ runs:
         git checkout ${{ env.release_branch }}
         git config user.email "${{ github.actor }}@venly.io"
         git config user.name "${{ github.actor }}"
+        if [ -n "${{ inputs.work_directory }}" ]; then
+          cd "${{ inputs.work_directory }}"
+        fi
         npm version minor
         RELEASE_VERSION=$(jq -r '.version' package.json)
         echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
@@ -75,17 +81,25 @@ runs:
         git switch develop
         # Remove all local tags
         git tag -l | xargs -n 1 git tag -d
+        if [ -n "${{ inputs.work_directory }}" ]; then
+          cd "${{ inputs.work_directory }}"
+        fi
         DEVELOP_VERSION=$(jq -r '.version' package.json)
 
         # Update npm version to release version to avoid merge conflicts
         npm version ${{ env.RELEASE_VERSION }} --git-tag-version=false
+        cd "${{ github.workspace }}"
         git commit -am "Update develop to release version to avoid merge conflicts"
 
         # Merge the production branch in develop
         git merge main
 
         # Update npm version back to the develop version
+        if [ -n "${{ inputs.work_directory }}" ]; then
+          cd "${{ inputs.work_directory }}"
+        fi
         npm version $DEVELOP_VERSION --git-tag-version=false
+        cd "${{ github.workspace }}"
         git commit -am "Update develop version back to pre-merge state"
 
     # Push

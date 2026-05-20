@@ -4,6 +4,9 @@ inputs:
   token:
     description: GitHub token for authentication
     required: true
+  work_directory:
+    description: "Optional working directory containing package.json"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -51,6 +54,7 @@ runs:
       uses: ./.github/actions/read_package_version
       with:
         env_var_name: release_version_raw
+        work_directory: ${{ inputs.work_directory }}
 
     - name: Extract semantic version
       shell: bash
@@ -82,7 +86,11 @@ runs:
         #!/bin/bash
         set -x
         git switch develop
+        if [ -n "${{ inputs.work_directory }}" ]; then
+          cd "${{ inputs.work_directory }}"
+        fi
         NEW_PRE_VERSION=$(npm version preminor --preid=SNAPSHOT --git-tag-version=false)
+        cd "${{ github.workspace }}"
         git add --all
         git commit --allow-empty -m "bump develop version $NEW_PRE_VERSION"
         git push origin HEAD:refs/heads/develop

@@ -47,10 +47,13 @@ jobs:
         uses: ./.github/actions/app_info
         with:
           branch: ${{ github.ref }}
+          work_directory: connect-sdk
 
       - name: 🔍 Get Version
         id: get_version
         uses: ./.github/actions/get_version
+        with:
+          work_directory: connect-sdk
 
       - name: 📄 Show Build Information
         run: |
@@ -185,3 +188,4 @@ jobs:
         with:
           branch: ${{ github.ref }}
           token: ${{ steps.app-token.outputs.token }}
+          work_directory: connect-sdk

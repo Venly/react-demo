@@ -7,6 +7,9 @@ inputs:
   token:
     description: GitHub token for authentication
     required: true
+  work_directory:
+    description: "Optional working directory containing package.json"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -31,29 +34,34 @@ runs:
         #!/bin/bash
         set -x
 
+        PACKAGE_DIR="${{ inputs.work_directory }}"
+        if [ -z "$PACKAGE_DIR" ]; then
+          PACKAGE_DIR="."
+        fi
+
         git fetch -p --unshallow
         git reset --hard
         git checkout ${{ github.sha }}
-        if [ -f "package.json" ]; then
+        if [ -f "$PACKAGE_DIR/package.json" ]; then
           # Read branch version
-          BRANCH_VERSION=$(jq -r '.version' package.json)
+          BRANCH_VERSION=$(jq -r '.version' "$PACKAGE_DIR/package.json")
 
           # Fetch develop branch and checkout
           git fetch --no-tags origin develop:develop
           git checkout develop
 
           # Read develop version
-          DEVELOP_VERSION=$(jq -r '.version' package.json)
+          DEVELOP_VERSION=$(jq -r '.version' "$PACKAGE_DIR/package.json")
 
           # Update develop to branch version
-          npm version $BRANCH_VERSION --git-tag-version=false
+          (cd "$PACKAGE_DIR" && npm version $BRANCH_VERSION --git-tag-version=false)
           git commit -am "Update develop to branch version to avoid merge conflicts"
 
           # Merge current commit into develop
           git merge ${{ github.sha }}
 
           # Restore develop version
-          npm version $DEVELOP_VERSION --git-tag-version=false
+          (cd "$PACKAGE_DIR" && npm version $DEVELOP_VERSION --git-tag-version=false)
           git commit -am "Update develop version back to pre-merge state"
         else
           # If not a Node.js project, just merge

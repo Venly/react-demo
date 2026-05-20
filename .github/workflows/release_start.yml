@@ -23,3 +23,4 @@ jobs:
       - uses: ./.github/actions/release_start
         with:
           token: ${{ steps.app-token.outputs.token }}
+          work_directory: connect-sdk

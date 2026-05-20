@@ -4,6 +4,9 @@ inputs:
   env_var_name:
     description: Name of the environment variable to set with the version value
     required: true
+  work_directory:
+    description: "Optional working directory containing package.json"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -12,6 +15,9 @@ runs:
       run: |
         #!/bin/bash
         set -x
+        if [ -n "${{ inputs.work_directory }}" ]; then
+          cd "${{ inputs.work_directory }}"
+        fi
         VERSION=$(jq -r '.version' "./package.json")
         if [[ "$VERSION" == "null" || -z "$VERSION" ]]; then
           echo "No version field found in package.json"

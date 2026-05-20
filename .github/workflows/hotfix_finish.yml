@@ -23,3 +23,4 @@ jobs:
       - uses: ./.github/actions/hotfix_finish
         with:
           token: ${{ steps.app-token.outputs.token }}
+          work_directory: connect-sdk

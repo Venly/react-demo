@@ -1,6 +1,11 @@
 name: version
 description: "Reads the version number from package.json"
 
+inputs:
+  work_directory:
+    description: "Optional working directory containing package.json"
+    required: false
+
 outputs:
   version:
     description: "Version from package.json"
@@ -15,6 +20,9 @@ runs:
       run: |
         #!/bin/bash
         set -x
+        if [ -n "${{ inputs.work_directory }}" ]; then
+          cd "${{ inputs.work_directory }}"
+        fi
         PACKAGE_JSON_PATH="./package.json"
         if [[ -f "$PACKAGE_JSON_PATH" ]]; then
             VERSION=$(jq -r '.version' "$PACKAGE_JSON_PATH")

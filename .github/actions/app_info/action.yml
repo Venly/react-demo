@@ -4,6 +4,9 @@ inputs:
   branch:
     description: name of the branch
     required: true
+  work_directory:
+    description: "Optional working directory containing package.json (Node projects only)"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -12,7 +15,11 @@ runs:
       id: app-type
       shell: bash
       run: |
-        if [ -f package.json ]; then
+        NODE_DIR="${{ inputs.work_directory }}"
+        if [ -z "$NODE_DIR" ]; then
+          NODE_DIR="."
+        fi
+        if [ -f "$NODE_DIR/package.json" ]; then
             echo "app_type=node" >> $GITHUB_ENV
             echo "App Type is Node"
           elif [ -f pom.xml ]; then
@@ -27,6 +34,9 @@ runs:
       id: package-version
       shell: bash
       run: |
+        if [ -n "${{ inputs.work_directory }}" ]; then
+          cd "${{ inputs.work_directory }}"
+        fi
         PACKAGE_JSON_PATH="./package.json"
         if [[ -f "$PACKAGE_JSON_PATH" ]]; then
             VERSION=$(jq -r '.version' "$PACKAGE_JSON_PATH")

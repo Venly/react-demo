@@ -4,6 +4,9 @@ inputs:
   token:
     description: GitHub token for authentication
     required: true
+  work_directory:
+    description: "Optional working directory containing package.json"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -49,6 +52,9 @@ runs:
         echo "🚀 Bumping the version..."
         git fetch -p
         git status
+        if [ -n "${{ inputs.work_directory }}" ]; then
+          cd "${{ inputs.work_directory }}"
+        fi
         npm version prepatch --preid=SNAPSHOT --git-tag-version=false
 
     # Read package.json for version
@@ -56,6 +62,7 @@ runs:
       uses: ./.github/actions/read_package_version
       with:
         env_var_name: hotfix_version_raw
+        work_directory: ${{ inputs.work_directory }}
 
     # Extract semantic version
     - name: Extract semantic version
@@ -95,6 +102,7 @@ runs:
       uses: ./.github/actions/read_package_version
       with:
         env_var_name: current-version-develop
+        work_directory: ${{ inputs.work_directory }}
 
     # Merge Back to develop
     - name: Merge To Develop Branch 🔄
@@ -108,7 +116,11 @@ runs:
 
         # Bump version to match the hotfix version without creating a git tag
         echo "🔖 Bumping version to match hotfix version..."
+        if [ -n "${{ inputs.work_directory }}" ]; then
+          cd "${{ inputs.work_directory }}"
+        fi
         npm version ${{ env.hotfix_version_raw }} --git-tag-version=false
+        cd "${{ github.workspace }}"
         git commit -am "Update develop to hotfix version ${{ env.hotfix_version_raw }} to avoid merge conflicts"
 
         # Merge the hotfix branch
@@ -117,7 +129,11 @@ runs:
 
         # Bump the develop version back to pre-merge state
         echo "🔖 Bumping develop version back to pre-merge state..."
+        if [ -n "${{ inputs.work_directory }}" ]; then
+          cd "${{ inputs.work_directory }}"
+        fi
         npm version ${{ env.current-version-develop }} --git-tag-version=false
+        cd "${{ github.workspace }}"
         git commit -am "Update develop version back to pre-merge state"
 
         # Push changes to the develop branch
