@@ -1,0 +1,155 @@
+name: F1 isolated ECR pilot
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type RUN F1 ECR PILOT to publish only to the isolated non-production repository
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: f1-isolated-ecr-pilot
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main' && inputs.confirmation == 'RUN F1 ECR PILOT'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - variant: standard-amd64
+            builder: standard
+            platforms: linux/amd64
+            expected_children: linux/amd64
+          - variant: standard-multi
+            builder: standard
+            platforms: linux/amd64,linux/arm64
+            expected_children: linux/amd64,linux/arm64
+          - variant: multistage-amd64
+            builder: multistage
+            platforms: linux/amd64
+            expected_children: linux/amd64
+          - variant: multistage-multi
+            builder: multistage
+            platforms: linux/amd64,linux/arm64
+            expected_children: linux/amd64,linux/arm64
+    env:
+      AWS_REGION: eu-west-1
+      ECR_ACCOUNT: '289334807197'
+      ECR_REPOSITORY: venly-graviton-f1-pilot-eu-west-1
+    steps:
+      - name: Checkout fixture
+        uses: actions/checkout@v4
+
+      - name: Configure resources account credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
+          role-session-name: F1EcrPilotPreflight
+
+      - name: Verify isolated destination
+        shell: bash
+        run: |
+          set -euo pipefail
+          account=$(aws sts get-caller-identity --query Account --output text)
+          test "$account" = "$ECR_ACCOUNT"
+          repository=$(aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" --region "$AWS_REGION" --output json)
+          jq -e --arg account "$ECR_ACCOUNT" --arg name "$ECR_REPOSITORY" \
+            '.repositories | length == 1 and .[0].registryId == $account and .[0].repositoryName == $name and .[0].imageTagMutability == "MUTABLE"' \
+            <<<"$repository"
+
+      # The standard builder expects an npmrc secret file even for this Alpine fixture.
+      - name: Prepare empty npmrc for standard builder
+        if: matrix.builder == 'standard'
+        run: |
+          # The pinned action hardcodes /root/.npmrc as a build secret. Give the
+          # unprivileged Actions runner access to this empty file only.
+          sudo chmod o+x /root
+          sudo install -m 644 /dev/null /root/.npmrc
+
+      - name: Publish with standard builder pinned to PR 238
+        if: matrix.builder == 'standard'
+        id: standard
+        uses: Venly/venly-github-workflows/.github/actions/build_docker@8b75ffb56608ef327ffebf0e7dfc896634528c7f
+        with:
+          aws_role: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
+          branch_tag: f1-pilot
+          docker_context: .github/f1-ecr-pilot
+          docker_file: .github/f1-ecr-pilot/Dockerfile
+          ecr_repo: ${{ env.ECR_REPOSITORY }}
+          platform: ${{ matrix.platforms }}
+          push_image: 'true'
+          sha_tag: ${{ github.sha }}
+          version_tag: 1.0.0-f1pilot-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.variant }}
+
+      - name: Publish with multi-stage builder pinned to PR 238
+        if: matrix.builder == 'multistage'
+        id: multistage
+        uses: Venly/venly-github-workflows/.github/actions/build_docker_multistage@8b75ffb56608ef327ffebf0e7dfc896634528c7f
+        with:
+          aws_role: ${{ secrets.RESOURCES_DEPLOY_ROLE }}
+          branch_tag: f1-pilot
+          build_args: F1_PILOT=1
+          docker_context: .github/f1-ecr-pilot
+          docker_file: .github/f1-ecr-pilot/Dockerfile
+          docker_target: runtime
+          ecr_repo: ${{ env.ECR_REPOSITORY }}
+          platform: ${{ matrix.platforms }}
+          push_image: 'true'
+          sha_tag: ${{ github.sha }}
+          version_tag: 1.0.0-f1pilot-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.variant }}
+
+      - name: Validate published images and candidate cleanup
+        shell: bash
+        env:
+          EXPECTED_CHILDREN: ${{ matrix.expected_children }}
+          IMAGE_DIGEST: ${{ steps.standard.outputs.image_digest || steps.multistage.outputs.image_digest }}
+          IMAGE_REF: ${{ steps.standard.outputs.image_ref || steps.multistage.outputs.image_ref }}
+          MANIFEST_MEDIA_TYPE: ${{ steps.standard.outputs.manifest_media_type || steps.multistage.outputs.manifest_media_type }}
+          PLATFORM_DIGESTS_JSON: ${{ steps.standard.outputs.platform_digests_json || steps.multistage.outputs.platform_digests_json }}
+          PUBLISHED: ${{ steps.standard.outputs.published || steps.multistage.outputs.published }}
+        run: |
+          set -euo pipefail
+          test "$PUBLISHED" = true
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          test "$IMAGE_REF" = "$ECR_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY@$IMAGE_DIGEST"
+          actual_children=$(jq -r 'keys | join(",")' <<<"$PLATFORM_DIGESTS_JSON")
+          test "$actual_children" = "$EXPECTED_CHILDREN"
+          jq -e 'all(.[]; test("^sha256:[0-9a-f]{64}$"))' <<<"$PLATFORM_DIGESTS_JSON"
+
+          if [[ "$EXPECTED_CHILDREN" == *arm64* ]]; then
+            [[ "$MANIFEST_MEDIA_TYPE" == *index* || "$MANIFEST_MEDIA_TYPE" == *manifest.list* ]]
+          fi
+
+          amd64_result=$(docker run --rm --platform linux/amd64 "$IMAGE_REF")
+          test "$amd64_result" = x86_64
+          if [[ "$EXPECTED_CHILDREN" == *arm64* ]]; then
+            arm64_result=$(docker run --rm --platform linux/arm64 "$IMAGE_REF")
+            test "$arm64_result" = aarch64
+          fi
+
+          images=$(aws ecr list-images --repository-name "$ECR_REPOSITORY" --region "$AWS_REGION" --output json)
+          jq -e --arg prefix "candidate-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-" \
+            '[.imageIds[] | .imageTag // empty | select(startswith($prefix))] | length == 0' \
+            <<<"$images"
+
+          {
+            echo "### ${{ matrix.variant }}"
+            echo "- Image: \`$IMAGE_REF\`"
+            echo "- Media type: \`$MANIFEST_MEDIA_TYPE\`"
+            echo "- Platform children: \`$PLATFORM_DIGESTS_JSON\`"
+            echo "- Runtime: amd64=x86_64"
+            if [[ "$EXPECTED_CHILDREN" == *arm64* ]]; then
+              echo "- Runtime: arm64=aarch64"
+            fi
+            echo "- Candidate tag cleanup: verified"
+          } >> "$GITHUB_STEP_SUMMARY"
